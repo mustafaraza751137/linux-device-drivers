@@ -1,0 +1,27 @@
+# Linux Kernel Module build artifacts
+*.o
+*.ko
+*.ko.cmd
+*.mod
+*.mod.c
+*.mod.o
+*.order
+modules.order
+Module.symvers
+.*.cmd
+.tmp_versions/
+
+# Compiled user-space test binaries
+cdev_test
+a.out
+*.exe
+
+# Editor & IDE configurations
+.vscode/
+.idea/
+*.swp
+*~
+
+# Archives and packages
+*.deb
+*.tar.gz
