@@ -15,6 +15,7 @@ A hands-on collection of Linux kernel loadable modules (LKMs) and character devi
 | [`08_read_write_cdev`](08_read_write_cdev/) | Reading & Writing | `.read`, `.write`, `copy_to_user`, `copy_from_user`, `loff_t *off` |
 | [`09_manual_cdev`](09_manual_cdev/) | Modern `cdev` Registration | `alloc_chrdev_region`, `cdev_init`, `cdev_add`, `dev_t` |
 | [`10_auto_devfile`](10_auto_devfile/) | Automatic `/dev` Creation | `class_create`, `device_create`, sysfs, uevent, udev daemon |
+| [`11_kmalloc`](11_kmalloc/) | Dynamic Memory Allocation | `kmalloc`, `kfree`, `filep->private_data`, `lseek` (`default_llseek`) |
 
 ---
 
@@ -37,3 +38,4 @@ sudo dmesg | tail -n 10
 sudo rmmod auto_devfile
 make clean
 ```
+
