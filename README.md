@@ -17,6 +17,7 @@ A hands-on collection of Linux kernel loadable modules (LKMs) and character devi
 | [`10_auto_devfile`](10_auto_devfile/) | Automatic `/dev` Creation | `class_create`, `device_create`, sysfs, uevent, udev daemon |
 | [`11_kmalloc`](11_kmalloc/) | Dynamic Memory Allocation | `kmalloc`, `kfree`, `filep->private_data`, `lseek` (`default_llseek`) |
 | [`12_simple_ioctl`](12_simple_ioctl/) | Basic Device Control | `ioctl`, `.unlocked_ioctl`, passing command numbers & arguments |
+| [`13_ioctl`](13_ioctl/) | Custom ioctl & Struct Transfer | `_IOR`, `_IOW`, `copy_to_user`, `copy_from_user`, struct payload, `-EOPNOTSUPP` |
 
 ---
 
