@@ -16,6 +16,10 @@ cdev_test
 a.out
 *.exe
 
+# Compiled Device Tree blobs
+*.dtb
+*.dtbo
+
 # Editor & IDE configurations
 .vscode/
 .idea/
