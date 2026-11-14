@@ -19,6 +19,7 @@ A hands-on collection of Linux kernel loadable modules (LKMs) and character devi
 | [`12_simple_ioctl`](12_simple_ioctl/) | Basic Device Control | `ioctl`, `.unlocked_ioctl`, passing command numbers & arguments |
 | [`13_ioctl`](13_ioctl/) | Custom ioctl & Struct Transfer | `_IOR`, `_IOW`, `copy_to_user`, `copy_from_user`, struct payload, `-EOPNOTSUPP` |
 | [`15_dt_overlay`](15_dt_overlay/) | Device Tree Overlays | `.dts`, `.dtbo`, `dtc`, `fragment`, `__overlay__`, `compatible` matching |
+| [`16_dt_dev_driver`](16_dt_dev_driver/) | Platform Drivers & Device Tree | `platform_driver`, `probe`, `remove`, `of_match_table`, `platform_device_register_simple` |
 
 ---
 
