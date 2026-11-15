@@ -22,6 +22,7 @@ A hands-on collection of Linux kernel loadable modules (LKMs) and character devi
 | [`16_dt_dev_driver`](16_dt_dev_driver/) | Platform Drivers & Device Tree | `platform_driver`, `probe`, `remove`, `of_match_table`, `platform_device_register_simple` |
 | [`17_dt_read_property`](17_dt_read_property/) | Reading Device Properties | `device_property_read_u32`, `device_property_read_string`, `PROPERTY_ENTRY_*`, `of_have_populated_dt` |
 | [`18_dev_logging`](18_dev_logging/) | Structured Device Logging | `dev_info`, `dev_warn`, `dev_err`, multi-instance device identification |
+| [`19_dt_dev_gpios`](19_dt_dev_gpios/) | Device Tree GPIO Descriptors | `gpiod_get`, `gpiod_set_value_cansleep`, `gpiod_lookup_table`, `gpio-sim` |
 
 ---
 

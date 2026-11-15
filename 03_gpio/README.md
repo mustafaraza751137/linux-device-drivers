@@ -53,7 +53,7 @@ sudo insmod gpioctrl.ko
 
 * **GPIO Line State (`gpioinfo`):**
   ```bash
-  sudo gpioinfo gpiochip0
+  sudo gpioinfo -c gpiochip0
   # Expected:
   #   line   4: unnamed  "led"  output  active-high [used]
   ```
