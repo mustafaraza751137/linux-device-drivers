@@ -105,3 +105,8 @@ make clean
 
 4. **Multi-Instance Host Mapping**:
    For host testing without Device Tree, each instance has its own `dev_id` (`my_dev_driver.0` mapped to pins 0/1; `my_dev_driver.1` mapped to pins 2/3), ensuring zero resource collision between devices.
+
+5. **Clean Preprocessor Separation (`#ifdef CONFIG_OF`)**:
+   The driver cleanly separates the core driver logic from VM test scaffolding using the kernel's native `CONFIG_OF` macro:
+   - **`#ifdef CONFIG_OF`**: For embedded Linux targets (ARM), registers the driver with a single one-line macro (`module_platform_driver(my_dev_driver)`).
+   - **`#ifndef CONFIG_OF`**: For x86 VirtualBox testing, compiles the lookup tables and software device setup to enable host testing without physical hardware.

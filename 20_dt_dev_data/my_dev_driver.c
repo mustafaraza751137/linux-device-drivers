@@ -1,14 +1,26 @@
 #include <linux/module.h>
 #include <linux/init.h>
-#include <linux/of.h>
-#include <linux/mod_devicetable.h>
 #include <linux/platform_device.h>
 #include <linux/gpio/consumer.h>
-#include <linux/gpio/machine.h>
 
+#ifdef CONFIG_OF
+#include <linux/of.h>
+#include <linux/mod_devicetable.h>
+#else
+/* Needed only for host testing on x86 VirtualBox */
+#include <linux/gpio/machine.h>
+#endif
+
+/*
+ * =========================================================================
+ * 1. VirtualBox / Host Testing Harness (x86 without Device Tree)
+ * =========================================================================
+ * Active only when CONFIG_OF is disabled. Simulates Device Tree hardware
+ * nodes using kernel software platform devices and GPIO lookup tables.
+ */
+#ifndef CONFIG_OF
 static struct platform_device *my_pdev1, *my_pdev2;
 
-/* GPIO Lookup Table for host testing (VirtualBox + gpio-sim) */
 static struct gpiod_lookup_table pdev1_gpio_table = {
     .dev_id = "my_dev_driver.0",
     .table = {
@@ -26,18 +38,26 @@ static struct gpiod_lookup_table pdev2_gpio_table = {
         { }
     },
 };
+#endif
 
+/*
+ * =========================================================================
+ * 2. Core Linux Platform Driver (Production Code for all platforms)
+ * =========================================================================
+ */
 struct my_dev_data {
     struct gpio_desc *led;
     struct gpio_desc *button;
 };
 
 /* Device Tree match table for embedded targets (ARM) */
+#ifdef CONFIG_OF
 static const struct of_device_id my_dev_ids[] = {
     { .compatible = "brightlight,mydev" },
     { }
 };
 MODULE_DEVICE_TABLE(of, my_dev_ids);
+#endif
 
 static int my_dev_probe(struct platform_device *pdev) {
     struct my_dev_data *priv;
@@ -45,8 +65,7 @@ static int my_dev_probe(struct platform_device *pdev) {
     struct device *dev = &pdev->dev;
 
     priv = devm_kzalloc(dev, sizeof(struct my_dev_data), GFP_KERNEL);
-
-    if(!priv) {
+    if (!priv) {
         dev_err(dev, "Out of memory\n");
         return -ENOMEM;
     }
@@ -76,7 +95,6 @@ static int my_dev_probe(struct platform_device *pdev) {
     dev_info(dev, "Button is %spressed (raw value: %d)\n", status ? "" : "not ", status);
 
     platform_set_drvdata(pdev, priv);
-
     return 0;
 
 free_led:
@@ -105,10 +123,30 @@ static struct platform_driver my_dev_driver = {
     .remove = my_dev_remove,
     .driver = {
         .name = "my_dev_driver",
+#ifdef CONFIG_OF
         .of_match_table = my_dev_ids,
+#endif
     }
 };
 
+/*
+ * =========================================================================
+ * 3. Driver Registration & Lifecycle
+ * =========================================================================
+ */
+#ifdef CONFIG_OF
+/*
+ * Embedded Target (Raspberry Pi / ARM):
+ * Hardware is described by Device Tree; the kernel handles device binding.
+ * Single macro replaces all init/exit boilerplate.
+ */
+module_platform_driver(my_dev_driver);
+
+#else
+/*
+ * VirtualBox / Host Testing (x86 without Device Tree):
+ * Manually instantiate software devices and lookup tables.
+ */
 static int __init hello_init(void) {
     int ret;
 
@@ -118,27 +156,25 @@ static int __init hello_init(void) {
         return ret;
     }
 
-    /* On non-DT hosts (x86 VM), register lookup table and software device */
-    if (!of_have_populated_dt()) {
-        pr_info("my_dev_driver: Registering lookup table and device for host testing\n");
-        gpiod_add_lookup_table(&pdev1_gpio_table);
-        gpiod_add_lookup_table(&pdev2_gpio_table);
+    pr_info("my_dev_driver: Registering lookup tables and devices for host testing\n");
+    gpiod_add_lookup_table(&pdev1_gpio_table);
+    gpiod_add_lookup_table(&pdev2_gpio_table);
 
-        my_pdev1 = platform_device_register_simple("my_dev_driver", 0, NULL, 0);
-        if (IS_ERR(my_pdev1)) {
-            gpiod_remove_lookup_table(&pdev1_gpio_table);
-            platform_driver_unregister(&my_dev_driver);
-            return PTR_ERR(my_pdev1);
-        }
+    my_pdev1 = platform_device_register_simple("my_dev_driver", 0, NULL, 0);
+    if (IS_ERR(my_pdev1)) {
+        gpiod_remove_lookup_table(&pdev1_gpio_table);
+        gpiod_remove_lookup_table(&pdev2_gpio_table);
+        platform_driver_unregister(&my_dev_driver);
+        return PTR_ERR(my_pdev1);
+    }
 
-        my_pdev2 = platform_device_register_simple("my_dev_driver", 1, NULL, 0);
-        if (IS_ERR(my_pdev2)) {
-            platform_device_unregister(my_pdev1);
-            gpiod_remove_lookup_table(&pdev1_gpio_table);
-            gpiod_remove_lookup_table(&pdev2_gpio_table);
-            platform_driver_unregister(&my_dev_driver);
-            return PTR_ERR(my_pdev2);
-        }
+    my_pdev2 = platform_device_register_simple("my_dev_driver", 1, NULL, 0);
+    if (IS_ERR(my_pdev2)) {
+        platform_device_unregister(my_pdev1);
+        gpiod_remove_lookup_table(&pdev2_gpio_table);
+        gpiod_remove_lookup_table(&pdev1_gpio_table);
+        platform_driver_unregister(&my_dev_driver);
+        return PTR_ERR(my_pdev2);
     }
 
     return 0;
@@ -149,10 +185,9 @@ static void __exit hello_exit(void) {
         platform_device_unregister(my_pdev2);
     if (my_pdev1)
         platform_device_unregister(my_pdev1);
-    if (!of_have_populated_dt()) {
-        gpiod_remove_lookup_table(&pdev2_gpio_table);
-        gpiod_remove_lookup_table(&pdev1_gpio_table);
-    }
+
+    gpiod_remove_lookup_table(&pdev2_gpio_table);
+    gpiod_remove_lookup_table(&pdev1_gpio_table);
 
     platform_driver_unregister(&my_dev_driver);
     pr_info("my_dev_driver: Driver unregistered\n");
@@ -160,7 +195,8 @@ static void __exit hello_exit(void) {
 
 module_init(hello_init);
 module_exit(hello_exit);
+#endif
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Mustafa Raza");
-MODULE_DESCRIPTION("Platform driver controlling GPIOs via Device Tree and lookup tables");
+MODULE_DESCRIPTION("Platform driver managing per-device private data across multiple instances");
